@@ -58,7 +58,7 @@ export default function Footer({ lang }: FooterProps) {
         <div className="flex flex-col md:flex-row items-start justify-between gap-12 mb-16">
           {/* Left */}
           <div className="flex flex-col gap-4">
-            <a href={lang === 'en' ? '/' : `/${lang}/`} className="font-logo text-2xl font-bold tracking-tight">
+            <a className="font-logo text-2xl font-bold tracking-tight">
               <span className="text-gradient">NOVA</span>
             </a>
             <p className="font-body text-sm text-white/30 max-w-xs leading-relaxed">
