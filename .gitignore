@@ -16,6 +16,7 @@ dist/
 .DS_Store
 Thumbs.db
 desktop.ini
+ehthumbs.db
 
 # editor
 .vscode/*
@@ -23,11 +24,31 @@ desktop.ini
 !.vscode/settings.json
 *.swp
 *.swo
+*.sublime-workspace
+*.sublime-project
+.idea/
 
 # logs
+logs/
 *.log
 npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# lock files (optional — remove if you want to track)
+# package-lock.json
 
 # misc
 .vercel/
 .netlify/
+.output/
+.cache/
+.parcel-cache/
+.bin/
+
+# binaries & media (if accidentally added)
+*.bin
+*.exe
+*.dll
