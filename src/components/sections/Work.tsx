@@ -4,6 +4,9 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import TiltCard from '../ui/TiltCard'
 import type { Lang } from '../../i18n/translations'
 import { t } from '../../i18n/translations'
+import { Suspense } from 'react'
+import { Canvas } from '@react-three/fiber'
+import ProjectAnimation from '../three/ProjectAnimations'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -18,49 +21,6 @@ const cardAccents = [
   { gradient: 'from-primary-light/6 to-accent-sand/5', glare: 'rgba(153, 205, 133, 0.08)', hue: 120 },
 ]
 
-function PlaceholderArt({ index }: { index: number }) {
-  const designs = [
-    // Design 0: Concentric circles with offset
-    <svg key="d0" viewBox="0 0 400 300" className="w-full h-full" fill="none">
-      <circle cx="200" cy="150" r="120" stroke="rgba(127,166,83,0.08)" strokeWidth="1" />
-      <circle cx="200" cy="150" r="90" stroke="rgba(127,166,83,0.12)" strokeWidth="1" />
-      <circle cx="200" cy="150" r="60" stroke="rgba(127,166,83,0.18)" strokeWidth="1" />
-      <circle cx="200" cy="150" r="30" stroke="rgba(127,166,83,0.25)" strokeWidth="1.5" />
-      <circle cx="220" cy="130" r="80" stroke="rgba(153,205,133,0.06)" strokeWidth="40" />
-      <line x1="80" y1="150" x2="320" y2="150" stroke="rgba(127,166,83,0.06)" strokeWidth="1" />
-      <line x1="200" y1="30" x2="200" y2="270" stroke="rgba(127,166,83,0.06)" strokeWidth="1" />
-    </svg>,
-    // Design 1: Diagonal lines with rectangle
-    <svg key="d1" viewBox="0 0 400 300" className="w-full h-full" fill="none">
-      <rect x="100" y="60" width="200" height="180" stroke="rgba(196,163,90,0.15)" strokeWidth="1" />
-      <rect x="130" y="90" width="140" height="120" stroke="rgba(196,163,90,0.1)" strokeWidth="1" />
-      {Array.from({ length: 8 }).map((_, i) => (
-        <line key={i} x1={50 + i * 45} y1="0" x2={50 + i * 45 - 100} y2="300" stroke="rgba(196,163,90,0.05)" strokeWidth="1" />
-      ))}
-      <circle cx="200" cy="150" r="40" fill="rgba(196,163,90,0.04)" />
-      <text x="200" y="158" textAnchor="middle" fill="rgba(196,163,90,0.12)" fontSize="14" fontFamily="monospace">02</text>
-    </svg>,
-    // Design 2: Grid dots with arc
-    <svg key="d2" viewBox="0 0 400 300" className="w-full h-full" fill="none">
-      {Array.from({ length: 10 }).map((_, row) =>
-        Array.from({ length: 14 }).map((_, col) => (
-          <circle key={`${row}-${col}`} cx={30 + col * 28} cy={20 + row * 30} r="1.5" fill={`rgba(138,154,108,${0.04 + (row + col) * 0.005})`} />
-        ))
-      )}
-      <path d="M 80 250 Q 200 50 320 250" stroke="rgba(138,154,108,0.15)" strokeWidth="2" fill="none" />
-      <path d="M 100 250 Q 200 80 300 250" stroke="rgba(138,154,108,0.08)" strokeWidth="1" fill="none" />
-    </svg>,
-    // Design 3: Abstract shapes composition
-    <svg key="d3" viewBox="0 0 400 300" className="w-full h-full" fill="none">
-      <polygon points="200,40 340,240 60,240" stroke="rgba(153,205,133,0.12)" strokeWidth="1" fill="rgba(153,205,133,0.02)" />
-      <circle cx="200" cy="175" r="60" stroke="rgba(153,205,133,0.1)" strokeWidth="1" fill="rgba(153,205,133,0.02)" />
-      <rect x="160" y="100" width="80" height="80" stroke="rgba(153,205,133,0.08)" strokeWidth="1" transform="rotate(45 200 140)" />
-      <line x1="0" y1="150" x2="400" y2="150" stroke="rgba(153,205,133,0.04)" strokeWidth="1" strokeDasharray="4 8" />
-    </svg>,
-  ]
-
-  return designs[index % designs.length]
-}
 
 function ProjectCard({
   project,
@@ -87,7 +47,11 @@ function ProjectCard({
         >
           <div className="absolute inset-0 dot-pattern opacity-30" />
           <div className="absolute inset-0">
-            <PlaceholderArt index={index} />
+            <Canvas dpr={[1, 1.5]} gl={{ antialias: false, alpha: false, powerPreference: 'high-performance' }}>
+              <Suspense fallback={null}>
+                <ProjectAnimation projectIndex={index} isHovered={isHovered} />
+              </Suspense>
+            </Canvas>
           </div>
           <span className="absolute bottom-4 right-4 font-display text-[60px] font-bold text-white/[0.02] select-none leading-none">
             {String(index + 1).padStart(2, '0')}
@@ -193,7 +157,7 @@ export default function Work({ lang }: WorkProps) {
     <section
       id="work"
       ref={sectionRef}
-      className="relative overflow-hidden"
+      className="relative overflow-hidden z-[2]"
       style={{ height: '100vh' }}
     >
       <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-accent-warm/3 rounded-full blur-[200px]" />

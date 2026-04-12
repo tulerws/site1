@@ -54,8 +54,12 @@ export function useMagneticButtons() {
 
     handleElements()
 
-    // Observe for dynamically added elements
-    const observer = new MutationObserver(() => handleElements())
+    // Observe for dynamically added elements — debounced
+    let debounceTimer: ReturnType<typeof setTimeout>
+    const observer = new MutationObserver(() => {
+      clearTimeout(debounceTimer)
+      debounceTimer = setTimeout(handleElements, 300)
+    })
     observer.observe(document.body, { childList: true, subtree: true })
 
     return () => observer.disconnect()

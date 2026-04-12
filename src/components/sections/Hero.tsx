@@ -1,4 +1,4 @@
-import { useEffect, useRef, Suspense, lazy, useState } from 'react'
+import { useEffect, useRef, Suspense, lazy } from 'react'
 import gsap from 'gsap'
 import { ScrollToPlugin } from 'gsap/ScrollToPlugin'
 import type { Lang } from '../../i18n/translations'
@@ -19,40 +19,51 @@ function MagneticTitle({ children, className, innerRef }: {
   innerRef: React.RefObject<HTMLDivElement | null>
 }) {
   const containerRef = useRef<HTMLDivElement>(null)
-  const [maskPos, setMaskPos] = useState({ x: 50, y: 50, active: false })
+  const maskRef = useRef<HTMLDivElement>(null)
+  const maskState = useRef({ x: 50, y: 50, active: false })
 
   useEffect(() => {
     const el = containerRef.current
-    if (!el) return
+    const maskEl = maskRef.current
+    if (!el || !maskEl) return
 
-    // Use a larger detection zone (80px padding around the element)
     const pad = 80
+    let rafId: number
+    let cachedRect: DOMRect | null = null
+    let rectTimer: ReturnType<typeof setTimeout>
+
+    const updateRect = () => { cachedRect = el.getBoundingClientRect() }
+    updateRect()
 
     const onMove = (e: MouseEvent) => {
-      const rect = el.getBoundingClientRect()
-      // Check if mouse is within padded area
+      if (!cachedRect) return
+      const rect = cachedRect
       if (
         e.clientX >= rect.left - pad &&
         e.clientX <= rect.right + pad &&
         e.clientY >= rect.top - pad &&
         e.clientY <= rect.bottom + pad
       ) {
-        const x = ((e.clientX - rect.left) / rect.width) * 100
-        const y = ((e.clientY - rect.top) / rect.height) * 100
-        setMaskPos({ x, y, active: true })
+        maskState.current.x = ((e.clientX - rect.left) / rect.width) * 100
+        maskState.current.y = ((e.clientY - rect.top) / rect.height) * 100
+        maskState.current.active = true
       } else {
-        setMaskPos((p) => ({ ...p, active: false }))
+        maskState.current.active = false
       }
+      const r = maskState.current.active ? 8 : 0
+      const grad = `radial-gradient(circle ${r}vw at ${maskState.current.x}% ${maskState.current.y}%, black 0%, transparent 100%)`
+      maskEl.style.maskImage = grad
+      maskEl.style.webkitMaskImage = grad
+      maskEl.style.transition = maskState.current.active ? 'none' : 'mask-image 0.6s ease, -webkit-mask-image 0.6s ease'
     }
 
-    // Listen on window so we detect approach before entering
-    window.addEventListener('mousemove', onMove)
+    window.addEventListener('mousemove', onMove, { passive: true })
+    window.addEventListener('scroll', updateRect, { passive: true })
     return () => {
       window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('scroll', updateRect)
     }
   }, [])
-
-  const radius = maskPos.active ? 8 : 0
 
   return (
     <div ref={containerRef} className="relative overflow-hidden cursor-none">
@@ -72,11 +83,12 @@ function MagneticTitle({ children, className, innerRef }: {
 
       {/* Filled reveal layer (masked by mouse position) */}
       <div
+        ref={maskRef}
         className="absolute inset-0 overflow-hidden pointer-events-none"
         style={{
-          maskImage: `radial-gradient(circle ${radius}vw at ${maskPos.x}% ${maskPos.y}%, black 0%, transparent 100%)`,
-          WebkitMaskImage: `radial-gradient(circle ${radius}vw at ${maskPos.x}% ${maskPos.y}%, black 0%, transparent 100%)`,
-          transition: maskPos.active ? 'none' : 'mask-image 0.6s ease, -webkit-mask-image 0.6s ease',
+          maskImage: 'radial-gradient(circle 0vw at 50% 50%, black 0%, transparent 100%)',
+          WebkitMaskImage: 'radial-gradient(circle 0vw at 50% 50%, black 0%, transparent 100%)',
+          willChange: 'mask-image',
         }}
       >
         <div

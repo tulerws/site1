@@ -14,7 +14,9 @@ const clientLogos = ['AURORA', 'NEXUS', 'VERTEX', 'CIPHER', 'ORBIT', 'PRISM']
 
 export default function Clients({ lang }: ClientsProps) {
   const sectionRef = useRef<HTMLElement>(null)
-  const [activeTestimonial, setActiveTestimonial] = useState(0)
+  const [activeIndex, setActiveIndex] = useState(0)
+  const quoteRef = useRef<HTMLDivElement>(null)
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const testimonials = t('clients.testimonials', lang) as Array<{
     quote: string
@@ -23,11 +25,36 @@ export default function Clients({ lang }: ClientsProps) {
     company: string
   }>
 
+  // Auto-cycle testimonials
+  useEffect(() => {
+    if (!testimonials || testimonials.length === 0) return
+
+    intervalRef.current = setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % testimonials.length)
+    }, 6000)
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current)
+    }
+  }, [testimonials?.length])
+
+  // Animate transition between testimonials
+  useEffect(() => {
+    const el = quoteRef.current
+    if (!el) return
+
+    gsap.fromTo(
+      el,
+      { opacity: 0, y: 20 },
+      { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }
+    )
+  }, [activeIndex])
+
   useEffect(() => {
     const section = sectionRef.current
     if (!section) return
 
-    // Animate logos
+    // Animate logos entrance
     const logos = section.querySelectorAll('.client-logo')
     gsap.fromTo(
       logos,
@@ -46,26 +73,6 @@ export default function Clients({ lang }: ClientsProps) {
       }
     )
 
-    // Animate testimonial
-    const testimonialEl = section.querySelector('.testimonial-block')
-    if (testimonialEl) {
-      gsap.fromTo(
-        testimonialEl,
-        { y: 40, opacity: 0 },
-        {
-          y: 0,
-          opacity: 1,
-          duration: 0.8,
-          ease: 'power3.out',
-          scrollTrigger: {
-            trigger: testimonialEl,
-            start: 'top 85%',
-            toggleActions: 'play none none reverse',
-          },
-        }
-      )
-    }
-
     return () => {
       ScrollTrigger.getAll().forEach((st) => {
         if (st.trigger === section || section.contains(st.trigger as Node)) st.kill()
@@ -73,14 +80,16 @@ export default function Clients({ lang }: ClientsProps) {
     }
   }, [])
 
-  // Auto-rotate testimonials
-  useEffect(() => {
-    if (!testimonials || testimonials.length <= 1) return
-    const interval = setInterval(() => {
-      setActiveTestimonial((prev) => (prev + 1) % testimonials.length)
-    }, 5000)
-    return () => clearInterval(interval)
-  }, [testimonials])
+  const handleDotClick = (index: number) => {
+    setActiveIndex(index)
+    // Reset interval on manual click
+    if (intervalRef.current) clearInterval(intervalRef.current)
+    intervalRef.current = setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % testimonials.length)
+    }, 6000)
+  }
+
+  const active = testimonials?.[activeIndex]
 
   return (
     <section
@@ -88,76 +97,63 @@ export default function Clients({ lang }: ClientsProps) {
       className="relative py-32 md:py-40 px-6 overflow-hidden"
     >
       {/* Background */}
-      <div className="absolute top-1/2 right-0 w-[500px] h-[500px] bg-accent-sage/3 rounded-full blur-[200px]" />
+      <div className="absolute top-1/2 right-0 w-[500px] h-[500px] bg-accent-sage/3 rounded-full blur-[200px] pointer-events-none" />
 
-      <div className="max-w-6xl mx-auto">
-        {/* Tag */}
-        <p className="font-body text-xs tracking-[0.4em] uppercase text-primary/40 mb-16 text-center">
+      <div className="max-w-6xl mx-auto w-full">
+        {/* Tag & Logos */}
+        <p className="font-body text-xs tracking-[0.4em] uppercase text-primary/40 mb-12 text-center md:text-left">
           {t('clients.tag', lang)}
         </p>
 
-        {/* Client logos row */}
-        <div className="flex flex-wrap items-center justify-center gap-10 md:gap-16 mb-24">
-          {clientLogos.map((name, i) => (
-            <div
-              key={name}
-              className="client-logo group cursor-default"
-            >
-              <span className="font-display text-xl md:text-2xl font-bold text-white/[0.08] group-hover:text-white/30 transition-all duration-500 tracking-widest">
+        <div className="flex flex-wrap items-center justify-center md:justify-start gap-8 md:gap-16 mb-20">
+          {clientLogos.map((name) => (
+            <div key={name} className="client-logo group cursor-default">
+              <span className="font-display text-xl md:text-2xl font-bold text-white/[0.08] group-hover:text-white/40 transition-all duration-500 tracking-widest">
                 {name}
               </span>
             </div>
           ))}
         </div>
 
-        {/* Testimonials */}
-        {testimonials && testimonials.length > 0 && (
-          <div className="testimonial-block max-w-3xl mx-auto text-center">
-            {/* Quote mark */}
-            <div className="text-primary/20 text-6xl font-display mb-6 leading-none">"</div>
-
-            {/* Quote */}
-            <div className="relative min-h-[120px]">
-              {testimonials.map((testimonial, i) => (
-                <p
-                  key={i}
-                  className={`font-body text-lg md:text-xl text-white/60 leading-relaxed italic absolute inset-0 transition-all duration-700 ${
-                    i === activeTestimonial
-                      ? 'opacity-100 translate-y-0'
-                      : 'opacity-0 translate-y-4 pointer-events-none'
-                  }`}
-                >
-                  {testimonial.quote}
-                </p>
-              ))}
-            </div>
-
-            {/* Author */}
-            <div className="mt-10">
-              <p className="font-display text-sm font-semibold text-white/80">
-                {testimonials[activeTestimonial]?.author}
-              </p>
-              <p className="font-body text-xs text-white/30 mt-1">
-                {testimonials[activeTestimonial]?.role} — {testimonials[activeTestimonial]?.company}
-              </p>
-            </div>
-
-            {/* Dots */}
-            {testimonials.length > 1 && (
-              <div className="flex items-center justify-center gap-3 mt-8">
-                {testimonials.map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setActiveTestimonial(i)}
-                    className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                      i === activeTestimonial
-                        ? 'bg-primary/60 w-6'
-                        : 'bg-white/15 hover:bg-white/25'
-                    }`}
-                  />
-                ))}
+        {/* Testimonial — single active with fade transition */}
+        {active && (
+          <div className="max-w-3xl mx-auto md:mx-0">
+            <div ref={quoteRef} className="relative">
+              <div className="text-primary/10 text-8xl font-display absolute -top-8 -left-6 leading-none select-none pointer-events-none">
+                &ldquo;
               </div>
-            )}
+              <p className="font-body text-2xl md:text-3xl text-white/80 leading-relaxed italic relative z-10">
+                {active.quote}
+              </p>
+              <div className="mt-8 border-t border-white/10 pt-6 flex items-end justify-between">
+                <div>
+                  <p className="font-display text-lg font-semibold text-white/90">
+                    {active.author}
+                  </p>
+                  <p className="font-body text-sm text-primary/60 mt-1 uppercase tracking-wider">
+                    {active.role} — {active.company}
+                  </p>
+                </div>
+
+                {/* Navigation dots */}
+                <div className="flex gap-2">
+                  {testimonials.map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => handleDotClick(i)}
+                      className="w-2 h-2 rounded-full transition-all duration-400"
+                      style={{
+                        background:
+                          i === activeIndex
+                            ? 'rgba(127, 166, 83, 0.6)'
+                            : 'rgba(255, 255, 255, 0.1)',
+                        transform: i === activeIndex ? 'scale(1.3)' : 'scale(1)',
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>

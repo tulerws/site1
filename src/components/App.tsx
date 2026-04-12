@@ -18,6 +18,7 @@ import Footer from './sections/Footer'
 import { useTextScramble } from '../hooks/useTextScramble'
 import { useMagneticButtons } from '../hooks/useMagneticButtons'
 import { useParallaxLayers } from '../hooks/useParallaxLayers'
+import { useVariableFont } from '../hooks/useVariableFont'
 import type { Lang } from '../i18n/translations'
 import { t } from '../i18n/translations'
 
@@ -36,6 +37,7 @@ export default function App({ lang }: AppProps) {
   useTextScramble()
   useMagneticButtons()
   useParallaxLayers()
+  useVariableFont()
 
   return (
     <>

@@ -1,13 +1,13 @@
 import { useRef, useMemo } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
-import { EffectComposer, Bloom, ChromaticAberration } from '@react-three/postprocessing'
+import { EffectComposer, Bloom } from '@react-three/postprocessing'
 import * as THREE from 'three'
 
 function ParticleSphere() {
   const meshRef = useRef<THREE.Points>(null)
   const mouseRef = useRef({ x: 0, y: 0 })
 
-  const count = 3000
+  const count = 1500
   const { positions, originalPositions } = useMemo(() => {
     const positions = new Float32Array(count * 3)
     const originalPositions = new Float32Array(count * 3)
@@ -115,8 +115,8 @@ export default function HeroScene() {
     <div className="absolute inset-0 z-0">
       <Canvas
         camera={{ position: [0, 0, 5], fov: 60 }}
-        dpr={[1, 2]}
-        gl={{ antialias: true, alpha: true }}
+        dpr={[1, 1.5]}
+        gl={{ antialias: false, alpha: true, powerPreference: 'high-performance' }}
         style={{ background: 'transparent' }}
       >
         <ambientLight intensity={0.2} />
@@ -130,11 +130,7 @@ export default function HeroScene() {
             intensity={1.5}
             mipmapBlur
           />
-          <ChromaticAberration
-            offset={new THREE.Vector2(0.0005, 0.0005)}
-            radialModulation={false}
-            modulationOffset={0}
-          />
+
         </EffectComposer>
       </Canvas>
     </div>

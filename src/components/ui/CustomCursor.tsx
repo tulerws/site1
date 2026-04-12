@@ -34,18 +34,18 @@ export default function CustomCursor() {
       mouseY = e.clientY
     }
 
-    // Smooth trailing loop
+    // Smooth trailing loop — direct style writes (faster than gsap.set per frame)
     const tick = () => {
       // Dot — follows immediately
-      gsap.set(dot, { x: mouseX, y: mouseY })
+      dot.style.transform = `translate(${mouseX}px, ${mouseY}px) translate(-50%, -50%)`
 
       // Ring — trails with spring
       ringX += (mouseX - ringX) * 0.15
       ringY += (mouseY - ringY) * 0.15
-      gsap.set(ring, { x: ringX, y: ringY })
+      ring.style.transform = `translate(${ringX}px, ${ringY}px) translate(-50%, -50%)`
 
       // Label
-      gsap.set(label, { x: ringX, y: ringY })
+      label.style.transform = `translate(${ringX}px, ${ringY}px) translate(-50%, -50%)`
 
       // Trail particles
       trails.forEach((trail, i) => {
@@ -56,7 +56,7 @@ export default function CustomCursor() {
         tData.x += (targetX - tData.x) * speed
         tData.y += (targetY - tData.y) * speed
         ;(trail as any).__pos = tData
-        gsap.set(trail, { x: tData.x, y: tData.y })
+        trail.style.transform = `translate(${tData.x}px, ${tData.y}px) translate(-50%, -50%)`
       })
 
       rafId = requestAnimationFrame(tick)
@@ -122,7 +122,11 @@ export default function CustomCursor() {
       })
     }
 
-    const observer = new MutationObserver(() => bindInteractives())
+    let debounceTimer: ReturnType<typeof setTimeout>
+    const observer = new MutationObserver(() => {
+      clearTimeout(debounceTimer)
+      debounceTimer = setTimeout(bindInteractives, 300)
+    })
     observer.observe(document.body, { childList: true, subtree: true })
     bindInteractives()
 

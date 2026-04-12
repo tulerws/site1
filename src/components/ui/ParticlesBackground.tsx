@@ -280,19 +280,19 @@ export default function ParticlesBackground() {
     handleScroll()
     animate()
 
-    const heightCheck = setInterval(() => {
+    // Use ResizeObserver instead of polling interval
+    const ro = new ResizeObserver(() => {
       const newMax = Math.max(document.documentElement.scrollHeight - h, 1)
-      if (Math.abs(newMax - maxScroll) > 100) {
-        maxScroll = newMax
-      }
-    }, 3000)
+      if (Math.abs(newMax - maxScroll) > 100) maxScroll = newMax
+    })
+    ro.observe(document.documentElement)
 
     return () => {
       cancelAnimationFrame(animationId)
       window.removeEventListener('mousemove', handleMouseMove)
       window.removeEventListener('scroll', handleScroll)
       window.removeEventListener('resize', resize)
-      clearInterval(heightCheck)
+      ro.disconnect()
     }
   }, [])
 

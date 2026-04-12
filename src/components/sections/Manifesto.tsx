@@ -1,6 +1,8 @@
 import { useEffect, useRef } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { Canvas } from '@react-three/fiber'
+import ManifestoObject from '../three/ManifestoObject'
 import type { Lang } from '../../i18n/translations'
 import { t } from '../../i18n/translations'
 
@@ -72,10 +74,14 @@ export default function Manifesto({ lang }: ManifestoProps) {
       ref={sectionRef}
       className="relative py-40 md:py-60 px-6 overflow-hidden"
     >
-      {/* Background glow */}
-      <div data-speed="-0.4" className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-accent-amber/3 rounded-full blur-[150px]" />
+      {/* WebGL Background */}
+      <div className="absolute inset-0 z-0 opacity-80">
+        <Canvas camera={{ position: [0, 0, 8], fov: 45 }}>
+          <ManifestoObject />
+        </Canvas>
+      </div>
 
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-5xl mx-auto relative z-10 pointer-events-none">
         {/* Tag */}
         <p className="font-body text-xs tracking-[0.4em] uppercase text-accent-warm/50 mb-16">
           {t('manifesto.tag', lang)}
